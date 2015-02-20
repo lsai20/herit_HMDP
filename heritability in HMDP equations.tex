@@ -1,0 +1,60 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\DeclareMathOperator{\tr}{tr}
+\begin{document}
+\title{Heritability in HDMP data}
+v
+
+\section{Model of heritability}
+\subsection{Notation}
+$N$ individuals, $M$ SNPs.\\
+$y$ is vector of phenotypes, where $y_{j}$ is the phenotype of $j$th individual.\\
+$\beta$ is the vector of effect sizes and $\beta_i$ is effect size of $i$th variant.\\
+$X$ is the matrix of normalized genotypes, $X_i$ is vector of genotypes for $i$th variant, $X_j$ is vector of genotypes of $j$th individual, and $X_{ij}$ is scalar.\\
+$S$ is matrix of strains, where $S_{jk} = 1$ if $j$th mouse is strain $k$th, and $S_{jk} = 0$ otherwise. \\
+%TODO notes use S_i, but strain should probably get a different count variable than variant. Also, should it be S_{jk} or S_{kj}
+%TODO $\eta_i$ is ...
+
+\subsection{Standard model}
+
+
+\begin{equation}
+y = 1 \mu + X \beta + e
+\end{equation}
+where $e \sim N(0, \sigma_e^2 I)$.\\
+
+\begin{equation}
+y = 1\mu + u + e
+\end{equation}
+where $u \sim N(0,\sigma_g^2 K)$.\\
+
+\begin{equation}
+h^2 = \frac {\sigma_y^2 * \tr(k)} {\sigma_y^2 + \sigma_e^2}
+\end{equation}
+
+If $\tr(k) = 1$, then: 
+\begin{equation} 
+h^2 = \frac {\sigma_y^2} {\sigma_y^2 + \sigma_e^2}
+\end{equation}
+
+
+If no LD and $X_i, X_j$ are independent:
+\begin{equation}
+h^2 = \frac {\sum\limits_{i=1}^{M}{\beta_i^2}} {\sum\limits_{i=1}^{M}{\beta_i} + \sigma_e^2}
+\end{equation}
+
+
+\subsection{with strain effect}
+
+\begin{equation}
+y = 1 \mu + X \beta + \sum\limits_{i=1}^{M}{\eta_i S_i} + e
+\end{equation}
+
+\subsection{with GxG effect}
+\begin{equation}
+y = 1 \mu + X \beta + \sum\limits_{i=1}^{M} \sum\limits_{j=1}^{N}{X_i X_j \beta_{ij}}+  e
+\end{equation}
+
+
+
+\end{document}
