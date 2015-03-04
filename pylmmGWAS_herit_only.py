@@ -309,7 +309,7 @@ for i in range(phenoNum):
     
     currentTrait = traitList[i]
     if options.verbose:
-        sus.stderr.write("Processing trait: \'%s\' ...\n" % currentTrait)
+        sys.stderr.write("Processing trait: \'%s\' ...\n" % currentTrait)
     X0 = X0_origin
     K = K_origin
     if options.kfile2:
