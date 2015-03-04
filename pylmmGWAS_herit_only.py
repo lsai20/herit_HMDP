@@ -4,8 +4,8 @@
 
 # Copyright (C) 2013  Nicholas A. Furlotte (nick.furlotte@gmail.com)
 
-# The program is free for academic use. Please contact Nick Furlotte
-# <nick.furlotte@gmail.com> if you are interested in using the software for
+#The program is free for academic use. Please contact Nick Furlotte
+#<nick.furlotte@gmail.com> if you are interested in using the software for
 #commercial purposes.
 
 #The software must not be modified and distributed without prior
@@ -27,34 +27,44 @@ import pdb
 import time
 import sys
 
+## Change: the output is heritability per trait instead
+## one trait per row. columns are h^2 and sigmas (and w's if second kinship matrix)
+## TODO: using L.optSigma and L.optW, but may be more relevant values to write to file
 
-def printOutHead(): out.write("\t".join(["SNP_ID", "BETA", "BETA_SD", "F_STAT", "P_VALUE"]) + "\n")
+## Change: headers/results
 
+def getTraitList():
+    # return list of phenotype labels in order they appear in phenotypes_clean.csv for HMDP data
+    traitStr = "ldl_and_vldl	glucose_lc	ffa	uc	hdl	tc	tg	glucose	mfp_percentage	rfp_percentage	gfp_percentage	ffp_percentage	mfp	rfp	gfp	ffp	heart_wt	spleen_wt	bw	nmr_bf_percentage	nmr_total_mass	free_fluid	lean_mass	fat_mass	covariate_thioglycolate_treated"
+    return traitStr.split("\t")
 
-def outputResult(id, beta, betaSD, ts, ps):
-    out.write("\t".join([str(x) for x in [id, beta, betaSD, ts, ps]]) + "\n")
+def printOutHead():
+    out.write("\t".join(["trait","heritability","sigma"]) + "\n")
 
+def outputResult(trait, optH, optSigma):
+    out.write("\t".join([str(x) for x in [trait, optH, optSigma]]) + "\n")
 
-def printOutHeadAnnotated(): out.write(
-    "\t".join(["SNP_ID", "A1", "NMISS", "BETA", "BETA_SD", "F_STAT", "P_VALUE"]) + "\n")
+def printOutHead_kfile2():
+    out.write("\t".join(["trait", "heritability", "sigma", "w"]) + "\n")
 
-
-def outputResultAnnotated(id, beta, betaSD, ts, ps, nmiss, annotation_dict):
-    try:
-        a1 = annotation_dict[id]
-    except KeyError:
-        a1 = 'N/A'
-    out.write("\t".join([str(x) for x in [id, a1, nmiss, beta, betaSD, ts, ps]]) + "\n")
+def outputResult_kfile2(trait, optH, optSigma, optW):
+    out.write("\t".join([str(x) for x in [trait, optH, optSigma, optW]]) + "\n")
 
 
 from optparse import OptionParser, OptionGroup
 
 usage = """usage: %prog [options] --kfile kinshipFile --[tfile | bfile] plinkFileBase outfileBase --afile annotationfile --GxE
 
-This program provides basic genome-wide association (GWAS) functionality.
-You provide a phenotype and genotype file as well as a pre-computed (use pylmmKinship.py)
-kinship matrix and the program outputs a result file with information about each SNP, including the association p-value.
+This program computes the heritability of a trait given:
+  kinship file (use pylmmKinship.py)
+  genotype (PLINK tped or bed, given without file extension so it will look for .map too)
+  phenotype files (EMMA, multiple phenotypes allowed)
+and outputs a file with heritability for each trait.
+
+Unlike pylmmGWAS.py, this program does not compute associations for individual SNPs.
+
 The input file are all standard plink formatted with the first two columns specifying the individual and family ID.
+
 For the phenotype file, we accept either NA or -9 to denote missing values.
 
 Basic usage:
@@ -147,6 +157,8 @@ if len(args) != 1:
 
 # Reading Annotation File
 if options.afile:
+    sys.stderr.write("WARNING: you have specified an annotation file, but this script will ignore it.\n")
+    '''
     annotation_dict = {}
     # Remove weird excel formatting
     lines = '\n'.join([line for line in open(options.afile, 'r')])
@@ -166,6 +178,7 @@ if options.afile:
         annotation_dict[snp_id] = allele
 
         # print len(annotation_dict.keys())
+    '''
 
 outFilename = args[0]
 
@@ -282,7 +295,21 @@ X0_origin = X0
 K_origin = K
 if options.kfile2:
     K2_origin = K2
+
+traitList = getTraitList()
+
+# print header
+with open(outFilename, 'w') as out:
+    if options.kfile2:
+        printOutHead_K2()
+    else:
+            printOutHead()
+
 for i in range(phenoNum):
+    
+    currentTrait = traitList[i]
+    if options.verbose:
+        sus.stderr.write("Processing trait: \'%s\' ...\n" % currentTrait)
     X0 = X0_origin
     K = K_origin
     if options.kfile2:
@@ -361,7 +388,7 @@ for i in range(phenoNum):
                     assert K[m, n] == 0
         covariate_exposure = covariate_exposure.reshape(covariate_exposure.shape[0], 1)
 
-    print('Beginning Association Tests...')
+    print('Beginning Association Tests (heritability only) ...')
     # CREATE LMM object for association
     n = K.shape[0]
     if not options.kfile2:
@@ -370,6 +397,8 @@ for i in range(phenoNum):
         L = lmm.LMM_withK2(Y, K, Kva, Kve, X0, verbose=options.verbose, K2=K2)
 
     # Fit the null model -- if refit is true we will refit for each SNP, so no reason to run here
+    # finds max likelihood heritability optH given params
+    # TODO not sure how bad it is not not refit for each SNP
     if not options.refit:
         if options.verbose:
             sys.stderr.write("Computing fit for null model\n")
@@ -379,22 +408,33 @@ for i in range(phenoNum):
         if options.verbose and options.kfile2:
             sys.stderr.write("\t heritability=%0.3f, sigma=%0.3f, w=%0.3f\n" % (L.optH, L.optSigma, L.optW))
 
-    if phenoNum == 1:
-        full_outFilename = outFilename
+# Change: write heritability and sigma (and w if there's a second kinship matrix) to file
+
+with open(outFilename, 'w') as out:
+    if option.kfile2:
+        outputResult_kfile2(currentTrait, L.optH, L.optSigma, L.optW)
     else:
-        start, end = os.path.splitext(outFilename)
-        full_outFilename = start + '_{0}'.format(i) + end
-    with open(full_outFilename, 'w') as out:
-        # Buffers for p-values and t-stats
-        PS = []
-        TS = []
-        count = 0
+        outputResult(currentTrait, L.optH, L.optSigma)
 
-        if options.afile:
-            printOutHeadAnnotated()
-        else:
-            printOutHead()
 
+# Change: No SNP association testing
+
+'''
+  if phenoNum == 1:
+    full_outFilename = outFilename
+  else:
+    start, end = os.path.splitext(outFilename)
+    full_outFilename = start + '_{0}'.format(i) + end
+  with open(full_outFilename, 'w') as out:
+    # Buffers for p-values and t-stats
+    PS = []
+    TS = []
+    count = 0
+  
+  if options.afile:
+  printOutHeadAnnotated()
+  else:
+  printOutHead()
         for snp, id in IN:
             count += 1
             if options.verbose and count % 1000 == 0:
@@ -470,3 +510,6 @@ for i in range(phenoNum):
                 outputResult(id, beta, np.sqrt(betaVar).sum(), ts, ps)
             PS.append(ps)
             TS.append(ts)
+'''
+
+
