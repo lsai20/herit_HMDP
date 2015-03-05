@@ -1,67 +1,96 @@
+#!/usr/bin/python
+
 # HMDP heritability
 # LG
 # finds average phenotype value for each strain from .pheno file
 # assumes all indiv in strain are together in subsequent rows
+# handles missing values of -9, any capitalization of nan in phenotype (omitted from average)
+# phenotypes where all indiv in phenotype are missing are given value of -9
+
 # input format:
 # strain1_0	strain1	pheno0_value	pheno1_value .... phenoN_value
 
-# TODO remove nan and -9. sum of float('nan') and any float is nan, and -9 also need to be treated as missing values.
-# that individual also needs to be treated as not incrementing the count.
 
 import sys
 import random
 
+
 def usage():
-	print("Usage: python strainAvgPheno.py phenotypeFile outputFile")
+	print("Usage: python strainAvgPheno.py phenotypeFile outputFile numPhenotypes")
 
-def sumLines(floatL, line):
-	'''adds values in line to floatL, ignoring nan and -9'''
+def isNonMissingVal(s):
+	'''given string s representing a float, return false iff s is a missing value'''
+	if s == '-9' or s.lower() == 'nan':
+		return False
+	return True
+
+def floatOrMiss(s):
+	'''given string s representing a float, return 0 if s is a missing value. 
+	else return value of s'''
+	if s == '-9' or s.lower() == 'nan':
+		return 0.0
+	return float(s)
+
+def divideMaybe(a,b):
+	'''divide a/b, return -9 if b is zero'''
+	if b == 0:
+		return -9
+	return a/b
 
 
-if len(sys.argv) != 3:
+if len(sys.argv) != 4:
     usage()
     sys.exit()
 
 fileName = sys.argv[1]
 outputName = sys.argv[2]
+numPheno = int(sys.argv[3])
 
+notFirstLine = False
+currentStrain = ""
+runningTotals = [0.0] * numPheno # for each pheno, sum of phenotype values
+numIndivs = [0] * len(runningTotals) # for each pheno, number of indiv without missing value
 
-with open(fileName,'r') as inf, open(outputName,'w') as outf:
-	# read first line
-	lineL = inf.readline().strip().split()
-	print("first line")
-	print(lineL)
-	numIndiv = 1 # number of indiv in strain so far
-	currentStrain = lineL[1]
-	runningTotals = [float(val) for val in lineL[2:]] # totals for each phenotype
-	print("Number of phenotypes found: %d" % len(runningTotals))
-	
-	# rest of indivs
+### read first line and count phenotypes
+#lineL = inf.readline().strip().split()
+#numPheno = len(lineL[2:])
+#print("Number of phenotypes found: %d" % numPheno)
+
+outf = open(outputName,'w')
+
+with open(fileName,'r') as inf:
+
 	for line in inf:
 		lineL = line.strip().split()
-		newStrain = lineL[1] # second column is strain name
-		newPhenoVals = [float(val) for val in lineL[2:]]
+		notFirstLine = True
 
-		if newStrain != currentStrain:
-			# find avg of old strain
-			print(currentStrain)
-			avgPhenos = [str(1.0*val/numIndiv) for val in runningTotals]
-			indivID = currentStrain + "_avg"
-			avgLine = "\t".join([indivID, currentStrain] + avgPhenos)
-			outf.write(avgLine + "\n")
+		# parse new indiv
+		newStrain = lineL[1] # strain is in 2nd col
+		newVals = [floatOrMiss(val) for val in lineL[2:]] # 0 if missing, whatever it is otherwise
+		newIndivs = [isNonMissingVal(val) for val in lineL[2:]] # True/1 if valid, False/0 if missing
 
-			# reset values before continuing
-			runningTotals = [0 for val in runningTotals]
-			numIndiv = 0
+
+		# if we've reached end of current strain
+		if newStrain != currentStrain and notFirstLine:
+			# compute avg of old strain and write
+			avgPhenos = [str(divideMaybe(x[0],x[1])) for x in zip(runningTotals, numIndivs)] 
+			avgLine = currentStrain + "_avg\t" + currentStrain + "\t" +  "\t".join(avgPhenos) + "\n"
+			outf.write(avgLine)
+
+
+			# reset vals
 			currentStrain = newStrain
+			runningTotals = [0.0] * numPheno
+			numIndivs = [0] * len(runningTotals)
 
-		numIndiv += 1
-		runningTotals = [sum(x) for x in zip(runningTotals, newPhenoVals)]
+		# update with new individual
+		runningTotals = [sum(x) for x in zip(runningTotals, newVals)]
+		numIndivs = [sum(x) for x in zip(numIndivs, newIndivs)]
 
 
-# TODO compute last strain avg after EOF
-avgPhenos = [1.0*val/numIndiv for val in runningTotals]
-indivID = currentStrain + "_avg"
-avgLine = "\t".join([indivID, currentStrain] + avgPhenos)
-open(outfName, 'a').write(avgLine + "\n")
 
+# compute last strain avg after EOF
+avgPhenos = [str(divideMaybe(x[0],x[1])) for x in zip(runningTotals, numIndivs)] 
+avgLine = currentStrain + "_avg\t" + currentStrain + "\t" +  "\t".join(avgPhenos) + "\n"
+outf.write(avgLine)
+outf.close()
