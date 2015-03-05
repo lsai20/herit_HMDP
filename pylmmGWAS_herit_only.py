@@ -29,14 +29,16 @@ import sys
 
 ## Change: the output is heritability per trait instead
 ## one trait per row. columns are h^2 and sigmas (and w's if second kinship matrix)
-## TODO: using L.optSigma and L.optW, but may be more relevant values to write to file
+## TODO currently using L.optSigma and L.optW, but may be more relevant values to write to file
+## TODO write info like how many indiv removed to log file
 
 ## Change: headers/results
 
 def getTraitList():
     # return list of phenotype labels in order they appear in phenotypes_clean.csv for HMDP data
-    traitStr = "ldl_and_vldl	glucose_lc	ffa	uc	hdl	tc	tg	glucose	mfp_percentage	rfp_percentage	gfp_percentage	ffp_percentage	mfp	rfp	gfp	ffp	heart_wt	spleen_wt	bw	nmr_bf_percentage	nmr_total_mass	free_fluid	lean_mass	fat_mass	covariate_thioglycolate_treated"
-    return traitStr.split("\t")
+    # IMPORTANT: animal_id has been assigned to each animal, and is currently treated by pylmm as a phenotype.
+    traitStr = "Animal_Id	ldl_and_vldl	glucose_lc	ffa	uc	hdl	tc	tg	glucose	mfp_percentage	rfp_percentage	gfp_percentage	ffp_percentage	mfp	rfp	gfp	ffp	heart_wt	spleen_wt	bw	nmr_bf_percentage	nmr_total_mass	free_fluid	lean_mass	fat_mass	covariate_thioglycolate_treated"
+    return traitStr.split() # split on any whitespace
 
 def printOutHead():
     out.write("\t".join(["trait","heritability","sigma"]) + "\n")
@@ -306,10 +308,12 @@ with open(outFilename, 'w') as out:
             printOutHead()
 
 for i in range(phenoNum):
+    #sys.stderr.write("\nFirst 5 of next Y:")
+    sys.stderr.write(str(IN.phenos[:, i][:5]))
     
     currentTrait = traitList[i]
     if options.verbose:
-        sys.stderr.write("Processing trait: \'%s\' ...\n" % currentTrait)
+        sys.stderr.write("\nProcessing trait i=%d: \'%s\' ...\n" % (i, currentTrait))
     X0 = X0_origin
     K = K_origin
     if options.kfile2:
@@ -318,8 +322,8 @@ for i in range(phenoNum):
     v = np.isnan(Y)
     keep = True - v
     if v.sum():
-        if options.verbose:
-            sys.stderr.write("Cleaning the phenotype vector by removing %d individuals...\n" % (v.sum()))
+        #TODOif options.verbose:
+        #TODO    sys.stderr.write("Cleaning the phenotype vector by removing %d individuals...\n" % (v.sum()))
         Y = Y[keep]
         X0 = X0[keep, :]
         K = K[keep, :][:, keep]
@@ -388,7 +392,7 @@ for i in range(phenoNum):
                     assert K[m, n] == 0
         covariate_exposure = covariate_exposure.reshape(covariate_exposure.shape[0], 1)
 
-    print('Beginning Association Tests (heritability only) ...')
+    #print('Beginning Association Tests (heritability only) ...')
     # CREATE LMM object for association
     n = K.shape[0]
     if not options.kfile2:
@@ -396,25 +400,27 @@ for i in range(phenoNum):
     else:
         L = lmm.LMM_withK2(Y, K, Kva, Kve, X0, verbose=options.verbose, K2=K2)
 
-    # Fit the null model -- if refit is true we will refit for each SNP, so no reason to run here
+    # Original pylmmGWAS.py: Fit the null model -- if refit is true we will refit for each SNP, so no reason to run here
     # finds max likelihood heritability optH given params
-    # TODO not sure how bad it is not not refit for each SNP
+    # TODO not sure how bad it is to not refit for each SNP
     if not options.refit:
-        if options.verbose:
-            sys.stderr.write("Computing fit for null model\n")
+        #TODOif options.verbose:
+            #TODOsys.stderr.write("Computing fit for null model:")
+            #TODOsys.stderr.write("Computing fit for null model\n")
+    
         L.fit()
-        if options.verbose and not options.kfile2:
-            sys.stderr.write("\t heritability=%0.3f, sigma=%0.3f\n" % (L.optH, L.optSigma))
+        #TODOif options.verbose and not options.kfile2:
+            #TODOsys.stderr.write("\t heritability=%0.3f, sigma=%0.3f\n" % (L.optH, L.optSigma))
         if options.verbose and options.kfile2:
             sys.stderr.write("\t heritability=%0.3f, sigma=%0.3f, w=%0.3f\n" % (L.optH, L.optSigma, L.optW))
 
 # Change: write heritability and sigma (and w if there's a second kinship matrix) to file
 
-with open(outFilename, 'w') as out:
-    if option.kfile2:
-        outputResult_kfile2(currentTrait, L.optH, L.optSigma, L.optW)
-    else:
-        outputResult(currentTrait, L.optH, L.optSigma)
+    with open(outFilename, 'a') as out:
+        if options.kfile2:
+            outputResult_kfile2(currentTrait, L.optH, L.optSigma, L.optW)
+        else:
+            outputResult(currentTrait, L.optH, L.optSigma)
 
 
 # Change: No SNP association testing
