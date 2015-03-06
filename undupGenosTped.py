@@ -29,7 +29,7 @@ currentStrain = ''
 rowNum = -1 # current row in file
 
 # find row id of first indiv in each strain
-with open(strainPhenoFile) as phenoinf:
+with open(strainPhenoFile,'r') as phenoinf:
     for line in phenoinf:
         rowCount += 1
         newStrain = (line.split('\s', 3))[2]
@@ -37,12 +37,12 @@ with open(strainPhenoFile) as phenoinf:
             keepIndivs.append(rowCount)
 
 # write tped with only one geno column per indiv
-with dupGenoFile as genoinf and open(outputName) as outf:
+with open(dupGenoFile,'r') as genoinf, open(outputName,'w') as outf:
     for line in genoinf:
         snpL = line.strip().split()
         # first four cols are chr/snp id stuff, rest are genotype for each indiv
         undupL = snpL[:4] + [snpL[4:][i] for i in keepIndivs]
-        outf.write("\t".join(undupL))
+        outf.write("\t".join(undupL) + "\n")
 
 
 
