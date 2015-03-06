@@ -40,9 +40,11 @@ with open(strainPhenoFile) as phenoinf:
 with dupGenoFile as genoinf, open(outputName) as outf:
     for line in genoinf:
         snpL = line.strip().split()
-        # first four cols are snp info, rest are genotype for each indiv
-        undupL = snp:[:4] + [snpL[4:][i] for i in keepIndivs]
-        
+        # first four cols are chr/snp id stuff, rest are genotype for each indiv
+        undupL = snpL[:4] + [snpL[4:][i] for i in keepIndivs]
+        outf.write("\t".join(undupL))
+
+
 
 
 
