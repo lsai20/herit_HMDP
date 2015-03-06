@@ -37,7 +37,7 @@ with open(strainPhenoFile) as phenoinf:
             keepIndivs.append(rowCount)
 
 # write tped with only one geno column per indiv
-with dupGenoFile as genoinf, open(outputName) as outf:
+with dupGenoFile as genoinf and open(outputName) as outf:
     for line in genoinf:
         snpL = line.strip().split()
         # first four cols are chr/snp id stuff, rest are genotype for each indiv
