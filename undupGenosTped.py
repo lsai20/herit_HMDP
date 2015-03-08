@@ -4,11 +4,8 @@
 # heritability in HMDP
 # LG
 # unduplicate genotypes while preserving order of strains in phenotype file
-# really slow, don't use
- 
-import sys
 
-sys.argv
+import sys
 
 
 def usage():
@@ -36,6 +33,7 @@ with open(strainPhenoFile,'r') as phenoinf:
         newStrain = (line.split(None, 3))[1] # second col is strain
         if newStrain != currentStrain:
             keepIndivs.append(rowNum)
+            currentStrain = newStrain
 
 print("Now trimming genotype file...")
 snpcount = 0 # print progress
@@ -44,12 +42,12 @@ outf = open(outputName,'w') # py2.6 can only do one file in with i believe
 with open(dupGenoFile,'r') as genoinf:
     for line in genoinf:
         snpcount += 1
-        if snpcount % 2000 == 0:
+        if snpcount % 5000 == 0:
             print("writing snp %d..." % snpcount)
         snpL = line.strip().split()
         # first four cols are chr/snp id stuff, rest are genotype for indiv
         undupL = snpL[:4] + [snpL[4:][i] for i in keepIndivs]
-        outf.write("\t".join(undupL) + "\n")
+        outf.write(" ".join(undupL) + "\n")
 
 outf.close()
 print("Done unduplicating")
