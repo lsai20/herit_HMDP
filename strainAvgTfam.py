@@ -3,16 +3,16 @@
 # HMDP heritability
 # LG
 # finds average phenotype value for each strain from .tfam file
-# just a copy of strainAvgPheno.py except the phenotype is in the sixth column instead of starting in the third
-# doesn't even use assumption that tfam has only one pheno, since strainAvgPheno covers that case
+# just a copy of strainAvgPheno.py except the phenotype is in the fifth column instead of starting in the third (PLINK format says it should be in sixth column)
+# and assumes one phenotype
 
 # assumes all indiv in strain are together in subsequent rows
 # handles missing values of -9, any capitalization of nan in phenotype (omitted from average)
 # phenotypes where all indiv in phenotype are missing are given value of -9
 
 # input format:
-# strain1_0	strain1	pheno0_value	pheno1_value .... phenoN_value
-
+# PLINK tfam: strain1_0	strain1	stuff stuff stuff pheno0_value
+# actual input format: strainA_0 strainA 0 2 5.1234 NULL
 
 import sys
 import random
@@ -50,8 +50,8 @@ outputName = sys.argv[2]
 numPheno = int(sys.argv[3])
 isDummyStrain = True
 currentStrain = ""
-runningTotals = [0.0] * numPheno # for each pheno, sum of phenotype values
-numIndivs = [0] * len(runningTotals) # for each pheno, number of indiv without missing value
+runningTotals = [0.0] # for each pheno, sum of phenotype values
+numIndivs = [0] # for each pheno, number of indiv without missing value
 
 ### read first line and count phenotypes
 #lineL = inf.readline().strip().split()
@@ -67,9 +67,9 @@ with open(fileName,'r') as inf:
 
 		# parse new indiv
 		newStrain = lineL[1] # strain is in 2nd col
-		# Change from strainAvgPheno: pheno is in 6th col instead of 3rd, so [5:] instead of [2:]
-		newVals = [floatOrMiss(val) for val in lineL[5:]] # 0 if missing, whatever it is otherwise
-		newIndivs = [isNonMissingVal(val) for val in lineL[5:]] # True/1 if valid, False/0 if missing
+		# Change from strainAvgPheno: pheno is in 5th col instead of 3rd, so [4:] instead of [2:]
+		newVals = [floatOrMiss(val) for val in lineL[4]] # 0 if missing, whatever it is otherwise
+		newIndivs = [isNonMissingVal(val) for val in lineL[4]] # True/1 if valid, False/0 if missing
 
 		# if we've reached end of current strain
 		if newStrain != currentStrain:
