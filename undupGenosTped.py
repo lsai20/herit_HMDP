@@ -46,7 +46,9 @@ with open(dupGenoFile,'r') as genoinf:
             print("writing snp %d..." % snpcount)
         snpL = line.strip().split()
         # first four cols are chr/snp id stuff, rest are genotype for indiv
-        undupL = snpL[:4] + [snpL[4:][i] for i in keepIndivs]
+        undupPairsL = [snpL[4:][i:i+2] for i in keepIndivs] # pairs of geno for each indiv
+        undupGenosL = [allele for pair in undupPairsL for allele in pair] # unnest genos
+        undupL = snpL[:4] + undupGenosL
         outf.write(" ".join(undupL) + "\n")
 
 outf.close()
