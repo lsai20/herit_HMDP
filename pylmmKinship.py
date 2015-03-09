@@ -95,11 +95,14 @@ K = None
 while i < IN.numSNPs:
    j = 0
    while j < options.computeSize and i < IN.numSNPs:
-      snp,id = IN.next()
-      if snp.var() == 0:
-	 i += 1
-	 continue
-      W[:,j] = snp
+	snp,id = IN.next()
+   if snp.var() == 0:
+      i += 1
+      continue
+   W[:,j] = snp
+
+	print(snp)
+	print("j ", j)
 
       i += 1
       j += 1
