@@ -98,14 +98,14 @@ while i < IN.numSNPs:
 	snp,id = IN.next()
    if snp.var() == 0:
       i += 1
-      continue
+	  continue
    W[:,j] = snp
 
-	print(snp)
-	print("j ", j)
+   print(snp)
+   print("j ", j)
 
-      i += 1
-      j += 1
+   i += 1
+   j += 1
    if j < options.computeSize: W = W[:,range(0,j)] 
 
    if options.verbose: sys.stderr.write("Processing first %d SNPs\n" % i)
