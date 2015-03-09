@@ -100,9 +100,9 @@ while i < IN.numSNPs:
       i += 1
       continue
    W[:,j] = snp
-
-   print(snp)
-   print("j ", j)
+   if i == 0:
+      print(snp)
+      print("j ", j)
 
    i += 1
    j += 1
