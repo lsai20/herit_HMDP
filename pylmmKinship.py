@@ -98,7 +98,7 @@ while i < IN.numSNPs:
 	snp,id = IN.next()
    if snp.var() == 0:
       i += 1
-	  continue
+      continue
    W[:,j] = snp
 
    print(snp)
