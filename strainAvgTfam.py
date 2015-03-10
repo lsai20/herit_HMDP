@@ -5,7 +5,7 @@
 # finds average phenotype value for each strain from .tfam file
 # just a copy of strainAvgPheno.py except the phenotype is in the fifth column instead of starting in the third (PLINK format says it should be in sixth column)
 # and assumes one phenotype
-# TODO NOT YET WORKING
+# TODO NOT YET WORKING, PROBABLY NOT NEEDED
 
 # assumes all indiv in strain are together in subsequent rows
 # handles missing values of -9, any capitalization of nan in phenotype (omitted from average)

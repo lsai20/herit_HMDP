@@ -95,14 +95,17 @@ K = None
 while i < IN.numSNPs:
    j = 0
    while j < options.computeSize and i < IN.numSNPs:
-      snp,id = IN.next()
-      if snp.var() == 0:
-	 i += 1
-	 continue
-      W[:,j] = snp
-
+	snp,id = IN.next()
+   if snp.var() == 0:
       i += 1
-      j += 1
+      continue
+   W[:,j] = snp
+   if i == 0:
+      print(snp)
+      print("j ", j)
+
+   i += 1
+   j += 1
    if j < options.computeSize: W = W[:,range(0,j)] 
 
    if options.verbose: sys.stderr.write("Processing first %d SNPs\n" % i)
