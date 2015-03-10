@@ -20,7 +20,7 @@ strainPhenoFile = sys.argv[1]   #
 dupGenoFile = sys.argv[2]       # duplicated tped
 outputName = sys.argv[3]
 
-keepIndivs = [] # row number of first member in each strain
+keepCols = [] # row number of first member in each strain
 
 currentStrain = ''
 rowNum = -1 # current row in file
@@ -32,7 +32,8 @@ with open(strainPhenoFile,'r') as phenoinf:
         rowNum += 1
         newStrain = (line.split(None, 3))[1] # second col is strain
         if newStrain != currentStrain:
-            keepIndivs.append(rowNum)
+            keepCols.append(rowNum) # two chr per indiv
+            keepCols.append(rowNum + 1)
             currentStrain = newStrain
 
 print("Now trimming genotype file...")
@@ -46,9 +47,7 @@ with open(dupGenoFile,'r') as genoinf:
             print("writing snp %d..." % snpcount)
         snpL = line.strip().split()
         # first four cols are chr/snp id stuff, rest are genotype for indiv
-        undupPairsL = [snpL[4:][i:i+2] for i in keepIndivs] # pairs of geno for each indiv
-        undupGenosL = [allele for pair in undupPairsL for allele in pair] # unnest genos
-        undupL = snpL[:4] + undupGenosL
+        undupL = snpL[:4] + [snpL[4:][i] for i in keepCols]
         outf.write(" ".join(undupL) + "\n")
 
 outf.close()
