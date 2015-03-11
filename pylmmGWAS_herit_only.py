@@ -303,7 +303,7 @@ traitList = getTraitList()
 # print header
 with open(outFilename, 'w') as out:
     if options.kfile2:
-        printOutHead_K2()
+        printOutHead_kfile2()
     else:
             printOutHead()
 
@@ -404,13 +404,12 @@ for i in range(phenoNum):
     # finds max likelihood heritability optH given params
     # TODO not sure how bad it is to not refit for each SNP
     if not options.refit:
-        #TODOif options.verbose:
-            #TODOsys.stderr.write("Computing fit for null model:")
-            #TODOsys.stderr.write("Computing fit for null model\n")
+        #CHANGEDif options.verbose:
+            #CHANGEDsys.stderr.write("Computing fit for null model\n")
     
         L.fit()
-        #TODOif options.verbose and not options.kfile2:
-            #TODOsys.stderr.write("\t heritability=%0.3f, sigma=%0.3f\n" % (L.optH, L.optSigma))
+        if options.verbose and not options.kfile2:
+            sys.stderr.write("\t heritability=%0.3f, sigma=%0.3f\n" % (L.optH, L.optSigma))
         if options.verbose and options.kfile2:
             sys.stderr.write("\t heritability=%0.3f, sigma=%0.3f, w=%0.3f\n" % (L.optH, L.optSigma, L.optW))
 
@@ -421,6 +420,8 @@ for i in range(phenoNum):
             outputResult_kfile2(currentTrait, L.optH, L.optSigma, L.optW)
         else:
             outputResult(currentTrait, L.optH, L.optSigma)
+
+
 
 
 # Change: No SNP association testing
