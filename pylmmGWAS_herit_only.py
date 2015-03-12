@@ -308,9 +308,6 @@ with open(outFilename, 'w') as out:
             printOutHead()
 
 for i in range(phenoNum):
-    #sys.stderr.write("\nFirst 5 of next Y:")
-    sys.stderr.write(str(IN.phenos[:, i][:5]))
-    
     currentTrait = traitList[i]
     if options.verbose:
         sys.stderr.write("\nProcessing trait i=%d: \'%s\' ...\n" % (i, currentTrait))
