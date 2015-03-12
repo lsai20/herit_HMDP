@@ -5,23 +5,26 @@
 # unduplicate genotypes while preserving order of strains in phenotype file
 
 import sys
-
+import os
 
 def usage():
-    print("Usage: python undupGenosTped.py dupPhenoFile dupGenoFile outputFileName")
+    print("Usage: python undupGenosTped.py indivPhenoFile dupGenoFile outputFileName")
     print("Note: dupPhenoFile must contain strain names in order.\n")
 
 if len(sys.argv) != 4:
     usage()
     sys.exit()
 
-
-strainPhenoFile = sys.argv[1]   #
+strainPhenoFile = sys.argv[1]   # .pheno with all individuals and strain name
 dupGenoFile = sys.argv[2]       # duplicated tped
 outputName = sys.argv[3]
 
-keepCols = [] # row number of first member in each strain
+# check if output file already exists to avoid overwriting
+if os.exists(outputName): 
+    print("ERROR: Output file \'%s\' already exists. Please specify a unique name for output." % outputName)
+    sys.exit()
 
+keepCols = [] # row number of first member in each strain
 currentStrain = ''
 rowNum = -1 # current row in file
 
@@ -41,8 +44,6 @@ snpcount = 0 # print progress
 # write tped with only one geno column per indiv
 outf = open(outputName,'w') # py2.6 can only do one file in with i believe
 with open(dupGenoFile,'r') as genoinf:
-    print(keepCols)
-
     for line in genoinf:
         snpcount += 1
         if snpcount % 5000 == 0:

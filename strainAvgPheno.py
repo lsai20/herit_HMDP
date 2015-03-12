@@ -10,7 +10,7 @@
 # input format:
 # strain1_0	strain1	pheno0_value	pheno1_value .... phenoN_value
 
-
+import os
 import sys
 import random
 
@@ -45,15 +45,17 @@ if len(sys.argv) != 4:
 fileName = sys.argv[1]
 outputName = sys.argv[2]
 numPheno = int(sys.argv[3])
+
+# check if output file already exists to avoid overwriting
+if os.exists(outputName): 
+	print("ERROR: Output file \'%s\' already exists. Please specify a unique name for output." % outputName)
+	sys.exit()
+
 isDummyStrain = True
 currentStrain = ""
 runningTotals = [0.0] * numPheno # for each pheno, sum of phenotype values
 numIndivs = [0] * len(runningTotals) # for each pheno, number of indiv without missing value
 
-### read first line and count phenotypes
-#lineL = inf.readline().strip().split()
-#numPheno = len(lineL[2:])
-#print("Number of phenotypes found: %d" % numPheno)
 
 outf = open(outputName,'w')
 
@@ -84,13 +86,9 @@ with open(fileName,'r') as inf:
 			numIndivs = [0] * len(runningTotals)
 			
 
-
-
 		# update with new individual
 		runningTotals = [sum(x) for x in zip(runningTotals, newVals)]
 		numIndivs = [sum(x) for x in zip(numIndivs, newIndivs)]
-
-
 
 
 # compute last strain avg after EOF
