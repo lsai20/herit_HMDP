@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 # heritability in HMDP
 # LG
 # unduplicate genotypes while preserving order of strains in phenotype file
@@ -9,7 +8,8 @@ import sys
 
 
 def usage():
-    print("Useage: python undupGenosTped.py strainPhenoFile dupGenoFile outputFileName")
+    print("Usage: python undupGenosTped.py dupPhenoFile dupGenoFile outputFileName")
+    print("Note: dupPhenoFile must contain strain names in order.\n")
 
 if len(sys.argv) != 4:
     usage()
@@ -32,8 +32,8 @@ with open(strainPhenoFile,'r') as phenoinf:
         rowNum += 1
         newStrain = (line.split(None, 3))[1] # second col is strain
         if newStrain != currentStrain:
-            keepCols.append(rowNum) # two chr per indiv
-            keepCols.append(rowNum + 1)
+            keepCols.append(rowNum*2) # two chr per indiv, so skip twice the cols
+            keepCols.append(rowNum*2 + 1) # also keep 2nd chr for each strain
             currentStrain = newStrain
 
 print("Now trimming genotype file...")
@@ -41,6 +41,8 @@ snpcount = 0 # print progress
 # write tped with only one geno column per indiv
 outf = open(outputName,'w') # py2.6 can only do one file in with i believe
 with open(dupGenoFile,'r') as genoinf:
+    print(keepCols)
+
     for line in genoinf:
         snpcount += 1
         if snpcount % 5000 == 0:
