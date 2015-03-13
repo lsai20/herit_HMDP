@@ -32,13 +32,15 @@ with open(strainPhenoFile,'r') as phenoinf:
             strainStarts.append(rowNum)
             currentStrain = newStrain
 
-numIndivs = rowNum
+numIndivs = rowNum + 1
 strainStarts.append(numIndivs) # also add index of one past last indiv
+print(strainStarts)
 
 with open(outputName, 'r'):
 
     numStrains = len(strainStarts) - 1
-    for i in range(numStrains - 1): # create block of 1's for each strain
+    print(numStrains)
+    for i in range(numStrains): # create block of 1's for each strain
         # start positions of current strain and next strain
         start = strainStarts[i]
         startNext = strainStarts[i+1]
