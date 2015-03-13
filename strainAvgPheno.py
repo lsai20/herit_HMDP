@@ -47,7 +47,7 @@ outputName = sys.argv[2]
 numPheno = int(sys.argv[3])
 
 # check if output file already exists to avoid overwriting
-if os.exists(outputName): 
+if os.path.exists(outputName): 
 	print("ERROR: Output file \'%s\' already exists. Please specify a unique name for output." % outputName)
 	sys.exit()
 

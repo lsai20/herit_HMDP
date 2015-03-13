@@ -9,7 +9,7 @@ import os
 
 def usage():
     print("Usage: python undupGenosTped.py indivPhenoFile dupGenoFile outputFileName")
-    print("Note: dupPhenoFile must contain strain names in order.\n")
+    print("Note: indivPhenoFile must contain strain names in order.\n")
 
 if len(sys.argv) != 4:
     usage()
@@ -20,7 +20,7 @@ dupGenoFile = sys.argv[2]       # duplicated tped
 outputName = sys.argv[3]
 
 # check if output file already exists to avoid overwriting
-if os.exists(outputName): 
+if os.path.exists(outputName): 
     print("ERROR: Output file \'%s\' already exists. Please specify a unique name for output." % outputName)
     sys.exit()
 
