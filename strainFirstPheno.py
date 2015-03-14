@@ -16,8 +16,7 @@ import random
 
 
 def usage():
-	print("Usage: python strainRandomPheno.py [--usefirst 1] phenotypeFile outputFile numPhenotypes")
-	print("--usefirst\t\t if 1, use phenotype of first mouse from each strain. (else, random)")
+	print("Usage: python strainFirstPheno.py phenotypeFile outputFile numPhenotypes")
 
 
 def isNonMissingVal(s):
@@ -26,21 +25,10 @@ def isNonMissingVal(s):
 		return False
 	return True
 
-useFirst = True
-fileName = "$non-existent)input"
-outputName = "$non-existent_output"
-numPheno = -1
-
 if len(sys.argv) == 4:
 	fileName = sys.argv[1]
 	outputName = sys.argv[2]
 	numPheno = int(sys.argv[3])
-
-elif len(sys.argv) == 6: # super crappy option processing
-	useFirst = bool(sys.argv[2])
-	fileName = sys.argv[3]
-	outputName = sys.argv[4]
-	numPheno - int(sys.argv[6])
 
 else: # wrong number of options
     usage()
